@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:diosample/service/apiservice.dart';
 import 'package:diosample/models/productsallresp/productsallresp.dart';
+import 'package:diosample/views/editproductpage.dart';
 
-class Homepage extends StatefulWidget {
+class MyProductsPage extends StatefulWidget {
   final Function(VoidCallback)? onRefreshCallbackSet;
 
-  const Homepage({super.key, this.onRefreshCallbackSet});
+  const MyProductsPage({super.key, this.onRefreshCallbackSet});
 
   @override
-  State<Homepage> createState() => _HomepageState();
+  State<MyProductsPage> createState() => _MyProductsPageState();
 }
 
-class _HomepageState extends State<Homepage> {
+class _MyProductsPageState extends State<MyProductsPage> {
   final Apiservice _apiservice = Apiservice();
   late Future<Productsall?> _productsFuture;
 
@@ -28,8 +29,65 @@ class _HomepageState extends State<Homepage> {
 
   void _loadProducts() {
     setState(() {
-      _productsFuture = _apiservice.getproductsall();
+      _productsFuture = _apiservice.myproduct();
     });
+  }
+
+  Future<void> _deleteProduct(int productId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Product'),
+        content: const Text('Are you sure you want to delete this product?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final result = await _apiservice.productdelete(productId);
+
+      if (result == true) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Product deleted successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _loadProducts();
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to delete product'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _editProduct(Data product) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProductPage(product: product),
+      ),
+    );
+
+    if (result == true) {
+      _loadProducts();
+    }
   }
 
   @override
@@ -84,6 +142,11 @@ class _HomepageState extends State<Homepage> {
                   Text(
                     'No Products Found',
                     style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Add your first product to get started',
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],
               ),
@@ -159,6 +222,21 @@ class _HomepageState extends State<Homepage> {
                             ),
                           ),
                         ],
+                      ),
+                    ],
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.blue),
+                        onPressed: () => _editProduct(product),
+                        tooltip: 'Edit',
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => _deleteProduct(product.id ?? 0),
+                        tooltip: 'Delete',
                       ),
                     ],
                   ),

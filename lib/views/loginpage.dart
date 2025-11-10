@@ -1,7 +1,7 @@
 import 'package:diosample/models/loginresp/loginresp.dart';
 import 'package:diosample/service/apiservice.dart';
 import 'package:diosample/service/usersevice.dart';
-import 'package:diosample/views/homepage.dart';
+import 'package:diosample/views/mainscreen.dart';
 import 'package:flutter/material.dart';
 
 class LoginPage extends StatefulWidget {
@@ -52,12 +52,12 @@ class _LoginPageState extends State<LoginPage> {
               ),
             );
 
-            // Navigate to homepage
+            // Navigate to MainScreen (with bottom navigation)
             // ignore: use_build_context_synchronously
             Navigator.pushReplacement(
               // ignore: use_build_context_synchronously
               context,
-              MaterialPageRoute(builder: (context) => const Homepage()),
+              MaterialPageRoute(builder: (context) => const MainScreen()),
             );
           } else {
             // Token not saved properly
